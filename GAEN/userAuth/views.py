@@ -13,7 +13,6 @@ from . import randomCode, codeSendToMail
 class RegisterAPIView(APIView):
     permission_classes = [permissions.AllowAny]
 
-
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
