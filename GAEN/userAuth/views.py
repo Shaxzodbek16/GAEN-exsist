@@ -13,7 +13,6 @@ from . import randomCode, codeSendToMail
 class RegisterAPIView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    @staticmethod
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -22,6 +21,7 @@ class RegisterAPIView(APIView):
         if ex_user:
             return Response({'message': f'{email} already has registered'})
         code = randomCode.get_random_code()
+        code = str(123456)
         codeSendToMail.send_email('muxtorovshaxzodbek16@gmail.com', "xuoz qigk ipia wifm",
                                   to_email='abroyevmuslimbek@gmail.com', message=code)
         conf_code = request.data.get('conf_code')
@@ -32,16 +32,15 @@ class RegisterAPIView(APIView):
         username = request.data.get('username')
         profile_pic = request.data.get('profile_pic')
         country = request.data.get('country')
-
         user = CustomUser.objects.create(email=email, password=hashers.make_password(password), conf_code=conf_code,
                                          first_name=first_name, last_name=last_name, username=username,
                                          profile_pic=profile_pic, country=country)
         token = RefreshToken.for_user(user)
-        return {
+        return Response({
             'message': f'Successfully created by {email}',
             'access_token': str(token.access_token),
             'refresh_token': str(token)
-        }
+        })
 
 
 # path('logIn/',),
