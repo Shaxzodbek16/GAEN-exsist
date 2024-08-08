@@ -45,7 +45,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=150, null=False, blank=False)
     last_name = models.CharField(max_length=150, null=True, blank=True)
     username = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    profile_pic = models.ImageField(upload_to=f'profilePicture/{email}/%Y/%m/%d/')
+    profile_pic = models.ImageField(upload_to=f'profilePictures/%Y/%m/', null=True, blank=True)
     country = models.CharField(max_length=80, null=False, blank=False)
 
     is_staff = models.BooleanField(default=False)
