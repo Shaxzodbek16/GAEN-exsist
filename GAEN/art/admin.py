@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Art, Comment
+from .models import Art, Comment, Category
 
 
 @admin.register(Category)
@@ -10,11 +10,11 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Art)
 class ArtAdmin(admin.ModelAdmin):
-    _ = ('title', 'description', 'category', 'created_at', 'update_at')
+    _ = ('title', 'description', 'is_accepted', 'created_at', 'update_at', 'user')
     list_display, list_filter, search_fields = _, _, _
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    _ = ('art', 'user', 'text', 'created_at')
+    _ = ('art', 'text', 'user', 'created_at')
     list_display, list_filter, search_fields = _, _, _
