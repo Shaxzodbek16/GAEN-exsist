@@ -7,6 +7,7 @@ __pycache__/
 .idea
 .idea/
 
+00*.py
 
 # C extensions
 *.so

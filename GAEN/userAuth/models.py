@@ -1,61 +1,55 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
+from rest_framework_simplejwt.tokens import RefreshToken
+from .managers import UserManager
+
+AUTH_PROVIDERS = {'email': 'email', 'google': 'google', 'github': 'github', 'linkedin': 'linkedin'}
 
 
-class CustomUserManager(BaseUserManager):
-    """
-    Custom user model manager where email is the unique identifiers
-    for authentication instead of usernames.
-    """
+class User(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=255, unique=True, verbose_name=_("email"))
+    first_name = models.CharField(max_length=100, verbose_name=_("First Name"))
+    last_name = models.CharField(max_length=100, null=True, blank=True)
 
-    def create_user(self, email, password, **extra_fields):
-        """
-        Create and save a user with the given email and password.
-        """
-        if not email:
-            raise ValueError(_("The Email must be set"))
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
-        return user
-
-    def create_superuser(self, email, password, **extra_fields):
-        """
-        Create and save a SuperUser with the given email and password.
-        """
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError(_("Superuser must have is_staff=True."))
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError(_("Superuser must have is_superuser=True."))
-        return self.create_user(email, password, **extra_fields)
-
-
-class CustomUser(AbstractUser):
-    email = models.CharField(max_length=200, unique=True, null=False, blank=False)
-    password = models.CharField(max_length=200, null=False, blank=False)
-    conf_code = models.CharField(max_length=10, null=False, blank=False)
-
-    first_name = models.CharField(max_length=150, null=False, blank=False)
-    last_name = models.CharField(max_length=150, null=True, blank=True)
     username = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    profile_pic = models.ImageField(upload_to=f'profilePicture/{email}/%Y/%m/%d/')
+    profile_pic = models.ImageField(upload_to=f'profilePictures/%Y/%m/', null=True, blank=True)
     country = models.CharField(max_length=80, null=False, blank=False)
 
     is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    date_joined = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(auto_now=True)
+    auth_provider = models.CharField(max_length=50, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'email'
 
-    objects = CustomUserManager()
+    REQUIRED_FIELDS = ["first_name", "last_name"]
+
+    objects = UserManager()
+
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token)
+        }
 
     def __str__(self):
         return self.email
+
+    @property
+    def get_full_name(self):
+        if self.last_name is None:
+            return str(self.first_name).title()
+        return f"{str(self.first_name).title()} {str(self.last_name).title()}"
+
+
+class OneTimePassword(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+
+    def __str__(self):
+        return f"{self.user.first_name} - otp code"
