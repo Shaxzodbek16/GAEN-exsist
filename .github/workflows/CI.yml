@@ -31,7 +31,13 @@ jobs:
         EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
         EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
         DEBUG: ${{ secrets.DEBUG }}
+        GITHUB_CLIENT_ID: ${{ secrets.GH_CLIENT_ID }}
+        GITHUB_SECRET: ${{ secrets.GH_SECRET }}
+        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+        SOCIAL_AUTH_PASSWORD: ${{ secrets.SOCIAL_AUTH_PASSWORD }}
+        GOOGLE_CLIENT_PASSWORD: ${{ secrets.GOOGLE_CLIENT_PASSWORD }}
 
       run: |
         cd GAEN
         python manage.py test
+        pytest
