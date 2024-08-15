@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "backend(Shaxzodbek)" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "backend(Shaxzodbek)" ]
 
 jobs:
   build:
