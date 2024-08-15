@@ -2,7 +2,7 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "backend(Shaxzodbek)" ]
   pull_request:
     branches: [ "main" ]
 
@@ -29,7 +29,7 @@ jobs:
       run: |
         cd GAEN
         export SECRET_KEY=${{ secrets.SECRET_KEY }}
-        export SECRET_KEY=${{ secrets.EMAIL_HOST_USER }}
-        export SECRET_KEY=${{ secrets.EMAIL_HOST_PASSWORD }}
-        export SECRET_KEY=${{ secrets.DEBUG }}
+        export EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}
+        export EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}
+        export DEBUG=${{ secrets.DEBUG }}
         python manage.py test
