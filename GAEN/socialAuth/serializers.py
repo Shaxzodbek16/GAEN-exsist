@@ -44,4 +44,3 @@ class GithubLoginSerializer(serializers.Serializer):
             lastName = names[0]
             provider = 'github'
             return register_social_user(provider, email, firstName, lastName)
-
