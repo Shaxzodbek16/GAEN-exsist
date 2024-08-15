@@ -151,9 +151,25 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-EMAIL_HOST = ''
+
+# emails secrets settings
+
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'muxtorovshaxzodbek16@gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
+
+
+# gutHub secrets settings
+# https://github.com/settings/developers
+# https://github.com/settings/applications/2673337
+GITHUB_CLIENT_ID = env('GITHUB_CLIENT_ID')
+GITHUB_SECRET = env('GITHUB_SECRET')
+
+# google secrets settings
+# https://console.cloud.google.com/apis/credentials/consent/edit;newAppInternalUser=false?project=gaen-432605
+# https://console.cloud.google.com/apis/credentials?project=gaen-432605
+GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_PASSWORD = env('GOOGLE_CLIENT_PASSWORD')
+SOCIAL_AUTH_PASSWORD = env('SOCIAL_AUTH_PASSWORD')

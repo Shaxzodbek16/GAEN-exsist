@@ -1,6 +1,6 @@
 from django.db import models
 
-from userAuth.models import User
+from userAuth.models import User  # type: ignore[attr-defined]
 
 
 class Category(models.Model):
