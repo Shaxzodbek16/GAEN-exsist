@@ -1,14 +1,18 @@
 from django.urls import path
 
-from .views import CategoryAPIView, CommentAPIView, ArtAPIView
+from .views import CategoryAPIView, CommentAPIView, ArtAPIView, GlobalArtApiView
 
 urlpatterns = [
-    path('category/<int:pk>/', CategoryAPIView.as_view(), name='category'),
+    path('category/<str:slug>/', CategoryAPIView.as_view(), name='category'),
     path('category/', CategoryAPIView.as_view(), name='category-create'),
 
-    path('comment/<int:pk>/', CommentAPIView.as_view(), name='comment'),
-    path('comment/', CommentAPIView.as_view(), name='create-comment'),
+    path('art/', ArtAPIView.as_view(), name='get-arts'),
+    path('art/<str:slug>/', ArtAPIView.as_view(), name='get-art'),
 
-    path('art/<int:pk>/', ArtAPIView.as_view(), name='art'),
-    path('art/', ArtAPIView.as_view(), name='create-art')
+    path('art-for-all/', GlobalArtApiView.as_view(), name='global-get'),
+    path('art-for-all/<str:slug>/', GlobalArtApiView.as_view(), name='global-get'),
+
+    path('art/<str:art_slug>/comments/', CommentAPIView.as_view(), name='get-arts'),
+    path('art/<str:art_slug>/comments/<str:comment_slug>', CommentAPIView.as_view(), name='get-arts'),
+
 ]
