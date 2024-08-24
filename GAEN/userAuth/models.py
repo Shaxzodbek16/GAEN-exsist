@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
 from .managers import UserManager
+from slugify import slugify
 
 AUTH_PROVIDERS = {'email': 'email', 'google': 'google', 'github': 'github', 'linkedin': 'linkedin'}
 
@@ -13,7 +14,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100, null=True, blank=True)
 
     username = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    profile_pic = models.ImageField(upload_to=f'profilePictures/%Y/%m/', null=True, blank=True)
+    profile_pic = models.ImageField(upload_to=f'media/profilePictures/%Y/%m/', null=True, blank=True)
     country = models.CharField(max_length=80, null=False, blank=False)
 
     is_staff = models.BooleanField(default=False)
@@ -23,6 +24,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)
     auth_provider = models.CharField(max_length=50, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
+    slug = models.CharField(max_length=300, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.username is None:
+            self.slug = slugify(str(self.username) + '-' + str(self.date_joined)[:25])
+        else:
+            self.slug = slugify(str(self.first_name) + '-' + str(self.date_joined)[:25])
+        return super().save(*args, **kwargs)
 
     USERNAME_FIELD = 'email'
 

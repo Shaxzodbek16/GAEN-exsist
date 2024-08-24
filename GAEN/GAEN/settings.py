@@ -32,10 +32,13 @@ INSTALLED_APPS = [
     'userAuth',
     'socialAuth',
     'art',
+    'chat',
     # third part apps
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg'
+
 ]
 
 MIDDLEWARE = [
@@ -145,12 +148,10 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-MEDIA_URL = 'media/'
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",
+# ]
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # emails secrets settings
 
