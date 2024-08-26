@@ -32,12 +32,12 @@ INSTALLED_APPS = [
     'userAuth',
     'socialAuth',
     'art',
-    'chat',
     # third part apps
     'rest_framework_simplejwt',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
-    'drf_yasg'
+    'drf_yasg',
+    'django_filters',
 
 ]
 
@@ -46,7 +46,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -74,6 +74,7 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+
 ROOT_URLCONF = 'GAEN.urls'
 
 TEMPLATES = [

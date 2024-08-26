@@ -1,23 +1,20 @@
-from dataclasses import field, fields
-from tabnanny import filename_only
-
 from rest_framework import serializers
 from .models import Category, Art, Comment
-from userAuth.serializers import UserSerializer
+from userAuth.serializers import UserSerializer # type: ignore[attr-defined]
+from userAuth.models import User # type: ignore[attr-defined]
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name', 'update_at')
-
+        fields = ('name', 'description', 'update_at', 'created_at' ,'slug', )
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True, )
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('text', 'art', 'user', 'created_at')
+        fields = ('text', 'created_at', 'update_at', 'art', 'user', 'edited', 'slug')
 
     def create(self, validated_data):
         comment = Comment.objects.create(text=validated_data["text"], user=validated_data["user"])
@@ -25,7 +22,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ArtSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
+    category = serializers.SlugRelatedField(queryset=Category.objects.all(), slug_field='name', required=True)
     comments = CommentSerializer(many=True, read_only=True)
     user = UserSerializer(read_only=True)
 

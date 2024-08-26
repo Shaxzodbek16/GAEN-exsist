@@ -1,3 +1,4 @@
+import uuid
 from turtledemo.sorting_animate import Block
 
 from slugify import slugify
@@ -8,7 +9,7 @@ from userAuth.models import User  # type: ignore[attr-defined]
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(auto_now=True)
@@ -16,11 +17,13 @@ class Category(models.Model):
     slug = models.CharField(max_length=300, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(str(self.name) + '-' + str(self.created_at)[:25])
-        return super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(str(self.name)) + '-' + uuid.uuid4().hex[:20]
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
-        return f'{self.name} - {self.created_at}'
+        return self.name
 
     class Meta:
         db_table = 'Category'
@@ -35,7 +38,7 @@ class Art(models.Model):
     description = models.TextField()
     art_img = models.ImageField(upload_to=f'media/artsImages/%Y/%m/')
 
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, to_field='name', on_delete=models.CASCADE)
 
     is_accepted = models.BooleanField(default=False, )
 
@@ -47,8 +50,9 @@ class Art(models.Model):
     slug = models.CharField(max_length=300, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(str(self.title) + '-' + str(self.created_at)[:25])
-        return super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(str(self.title)) + '-' + uuid.uuid4().hex[:20]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.title} - {self.category} - {self.created_at}'
@@ -70,8 +74,9 @@ class Comment(models.Model):
     slug = models.CharField(max_length=300, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(str(self.text) + '-' + str(self.created_at)[:25])
-        return super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = slugify(str(self.text)) + '-' + uuid.uuid4().hex[:20]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.text} at {self.created_at}'

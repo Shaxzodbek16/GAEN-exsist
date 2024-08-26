@@ -1,16 +1,14 @@
-from functools import partial
-
 from rest_framework.generics import GenericAPIView, UpdateAPIView
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import OneTimePassword
-from .serializers import UserSerializer, PasswordResetRequestSerializer, LogoutUserSerializer, UserRegisterSerializer, LoginSerializer, SetNewPasswordSerializer
+from .serializers import UserSerializer, PasswordResetRequestSerializer, LogoutUserSerializer, UserRegisterSerializer, \
+    LoginSerializer, SetNewPasswordSerializer
 from rest_framework import status
 from .utils import send_generated_otp_to_email
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import smart_str, DjangoUnicodeDecodeError
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import User
 
 
@@ -93,19 +91,9 @@ class SetNewPasswordView(GenericAPIView):
         return Response({'success': True, 'message': "password reset is succesful"}, status=status.HTTP_200_OK)
 
 
-class TestingAuthenticatedReq(GenericAPIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        data = {
-            'msg': 'its works'
-        }
-        return Response(data, status=status.HTTP_200_OK)
-
-
 class LogoutApiView(GenericAPIView):
     serializer_class = LogoutUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] or [IsAdminUser]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -117,7 +105,7 @@ class LogoutApiView(GenericAPIView):
 class ProfileUpdateView(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] or [IsAdminUser]
 
     def update(self, request, *args, **kwargs):
         user = self.request.user
@@ -126,3 +114,15 @@ class ProfileUpdateView(UpdateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteUserApiView(GenericAPIView):
+    permission_classes = [IsAuthenticated] or [IsAdminUser]
+
+    def delete(self, request):
+        try:
+            user = User.objects.get(slug=request.user.slug)
+        except:
+            return Response({'message': 'User not found'})
+        user.delete()
+        return Response({'message': 'Deleted'}, status.HTTP_204_NO_CONTENT)

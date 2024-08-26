@@ -2,18 +2,70 @@ from rest_framework.generics import GenericAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 
-from .models import Art, Comment
+from .models import Art, Category, Comment
 from .pagination import StandardResultsSetPagination
-from .serializers import ArtSerializer, CommentSerializer
+from .serializers import ArtSerializer, CategorySerializer, CommentSerializer
 from userAuth.serializers import UserSerializer  # type: ignore[attr-defined]
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-class ArtAPIView(GenericAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+class AdminCategoryAPIView(GenericAPIView):
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    serializer_class = CategorySerializer
+    def get(self, request, slug=None):
+        if slug:
+            try:
+                category = Category.objects.get(slug=slug)
+                serializer = CategorySerializer(category)
+                return Response(serializer.data)
+            except Category.DoesNotExist:
+                return Response({'message': f'Category not found by {slug}'})
+
+        categories = Category.objects.all()
+        search_term = request.GET.get('search')
+
+        if search_term:
+            categories = categories.filter(name__icontains=search_term)
+            serializer = CategorySerializer(categories, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        categories = Category.objects.all().order_by('-created_at')
+        page = self.paginate_queryset(categories)
+        if page is not None:
+            serializer = CategorySerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    def put(self, request, slug=None):
+        try:
+            category = Category.objects.get(slug=slug)
+        except Category.DoesNotExist:
+            return Response({"error": f"category not found by {slug}"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, slug=None):
+        try:
+            category = Category.objects.get(slug=slug)
+            category.delete()
+            return Response({"message": f"{category.name} category successfully deleted"})
+        except Category.DoesNotExist:
+            return Response({"error": f"category not found by {slug} id"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AdminArtAPIView(GenericAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly | permissions.IsAdminUser]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    serializer_class = ArtSerializer
 
     def get(self, request, slug=None):
         user = request.user
@@ -62,17 +114,6 @@ class ArtAPIView(GenericAPIView):
         serializer = ArtSerializer(arts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        user = request.user
-        if not user.is_authenticated:
-            return Response(data={'message': 'Authentication required to create art'},
-                            status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = ArtSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, slug=None):
         try:
@@ -80,32 +121,25 @@ class ArtAPIView(GenericAPIView):
         except Art.DoesNotExist:
             return Response(data={'message': f'Art with ID {slug} not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if art.user == request.user:
-            serializer = ArtSerializer(art, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                art.is_accepted = False
-                art.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data={'message': 'You can only update your own art'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ArtSerializer(art, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, slug=None):
         try:
             art = Art.objects.get(slug=slug)
         except Art.DoesNotExist:
             return Response(data={'message': f'Art with ID {slug} not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        if art.user != request.user:
-            return Response(data={'message': 'You can only delete your own art'}, status=status.HTTP_403_FORBIDDEN)
         art.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CommentAPIView(GenericAPIView):
+class AdminCommentAPIView(GenericAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     pagination_class = StandardResultsSetPagination
-
+    serializer_class = CommentSerializer
     def get(self, request, art_slug=None, comment_slug=None):
         try:
             art = Art.objects.get(slug=art_slug)
@@ -125,27 +159,6 @@ class CommentAPIView(GenericAPIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, art_slug=None):
-        try:
-            art = Art.objects.get(slug=art_slug)
-        except Art.DoesNotExist:
-            return Response(data={'message': 'Given art does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        user_obj = request.user
-
-        text = request.data.get("text")
-        if text is None:
-            return Response(data={'message': 'text must not be empty'}, status=status.HTTP_400_BAD_REQUEST)
-        text = text.strip()
-        if text == '':
-            return Response(data={'message': 'text must not include only white spaces'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        comment_obj = Comment(text=text, user=user_obj, art=art)
-        comment_obj.save()
-        return Response(data={
-            'comment': CommentSerializer(comment_obj).data,
-        }, status=status.HTTP_201_CREATED)
-
     def put(self, request, art_slug=None, comment_slug=None):
         try:
             art = Art.objects.get(slug=art_slug)
@@ -159,9 +172,6 @@ class CommentAPIView(GenericAPIView):
             comment = Comment.objects.filter(art=art).get(slug=comment_slug)
         except Comment.DoesNotExist:
             return Response({"message": "comment not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if comment.user != request.user:
-            return Response({'message': 'You can only modify your own comments'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = CommentSerializer(comment, data=request.data, partial=True)
 
@@ -187,9 +197,5 @@ class CommentAPIView(GenericAPIView):
             comment = Comment.objects.get(slug=comment_slug)
         except Comment.DoesNotExist:
             return Response({"message": "comment not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        if comment.user != request.user:
-            return Response({'message': 'You can only delete your own comments'}, status=status.HTTP_403_FORBIDDEN)
-
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
