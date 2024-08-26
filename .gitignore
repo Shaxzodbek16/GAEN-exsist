@@ -6,7 +6,7 @@ __pycache__/
 .venv/
 .idea
 .idea/
-
+*.jpeg
 00*.py
 
 # C extensions
