@@ -30,6 +30,7 @@ class RegisterView(GenericAPIView):
 
 
 class VerifyUserEmail(GenericAPIView):
+    serializer_class = UserSerializer
     def post(self, request):
         try:
             passcode = request.data.get('otp')
@@ -67,7 +68,6 @@ class PasswordResetRequestView(GenericAPIView):
 
 
 class PasswordResetConfirm(GenericAPIView):
-
     def get(self, request, uidb64, token):
         try:
             user_id = smart_str(urlsafe_base64_decode(uidb64))
