@@ -49,6 +49,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+    class Meta:
+        db_table = 'Users'
+
     @property
     def get_full_name(self):
         if self.last_name is None:
@@ -62,3 +65,6 @@ class OneTimePassword(models.Model):
 
     def __str__(self):
         return f"{self.user.first_name} - otp code"
+
+    class Meta:
+        db_table = 'PasswordConfirms'

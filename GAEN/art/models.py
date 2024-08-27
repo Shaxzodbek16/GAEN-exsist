@@ -1,5 +1,4 @@
 import uuid
-from turtledemo.sorting_animate import Block
 
 from slugify import slugify
 
@@ -89,3 +88,6 @@ class Comment(models.Model):
         self.edited = kwargs['edited']
         self.art = kwargs['art']
         self.user = kwargs['user']
+
+    class Meta:
+        db_table = 'Comments'
