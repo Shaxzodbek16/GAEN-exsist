@@ -17,8 +17,8 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'username', 'profile_pic', 'country', 'is_superuser',
-                  'is_verified', 'date_joined', 'last_login')
+        fields = ('email', 'first_name', 'last_name', 'username', 'profile_pic', 'country', 'is_superuser', 'is_staff',
+                  'is_verified', 'is_active','date_joined', 'last_login', 'auth_provider', 'slug')
 
     def update(self, instance, validated_data):
         instance.email = validated_data.get("email", instance.email)

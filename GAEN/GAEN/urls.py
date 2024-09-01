@@ -25,10 +25,9 @@ urlpatterns = [
     path('api/v1/auth/', include("userAuth.urls")),
     path('api/v1/auth/', include('socialAuth.urls')),
     path('api/v1/article/user/', include('art.urls')),
-    path('api/v1/article/admin/', include('art.adminUrls')),
 
+    path('swagger/', schema_view.with_ui(cache_timeout=0), name='schema-ui'),
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redocs/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 
